@@ -4,7 +4,7 @@ defmodule AtlasWeb.UserSessionControllerTest do
   import Atlas.AccountsFixtures
 
   setup do
-    %{user: user_fixture()}
+    [user: user_fixture()]
   end
 
   describe "GET /users/log_in" do

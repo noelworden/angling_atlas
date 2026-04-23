@@ -34,7 +34,7 @@ defmodule AtlasWeb.UserSettingsControllerTest do
 
       assert redirected_to(new_password_conn) == ~p"/users/settings"
 
-      assert get_session(new_password_conn, :user_token) != get_session(conn, :user_token)
+      refute get_session(new_password_conn, :user_token) == get_session(conn, :user_token)
 
       assert Phoenix.Flash.get(new_password_conn.assigns.flash, :info) =~
                "Password updated successfully"
@@ -105,7 +105,7 @@ defmodule AtlasWeb.UserSettingsControllerTest do
           Accounts.deliver_user_update_email_instructions(%{user | email: email}, user.email, url)
         end)
 
-      %{token: token, email: email}
+      [token: token, email: email]
     end
 
     test "updates the user email once", %{conn: conn, user: user, token: token, email: email} do

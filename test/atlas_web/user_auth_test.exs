@@ -14,7 +14,7 @@ defmodule AtlasWeb.UserAuthTest do
       |> Map.replace!(:secret_key_base, AtlasWeb.Endpoint.config(:secret_key_base))
       |> init_test_session(%{})
 
-    %{user: user_fixture(), conn: conn}
+    [user: user_fixture(), conn: conn]
   end
 
   describe "log_in_user/3" do
@@ -41,7 +41,7 @@ defmodule AtlasWeb.UserAuthTest do
       assert get_session(conn, :user_token) == conn.cookies[@remember_me_cookie]
 
       assert %{value: signed_token, max_age: max_age} = conn.resp_cookies[@remember_me_cookie]
-      assert signed_token != get_session(conn, :user_token)
+      refute signed_token == get_session(conn, :user_token)
       assert max_age == 5_184_000
     end
   end
@@ -135,7 +135,7 @@ defmodule AtlasWeb.UserAuthTest do
       {:cont, updated_socket} =
         UserAuth.on_mount(:mount_current_user, %{}, session, %LiveView.Socket{})
 
-      assert updated_socket.assigns.current_user == nil
+      assert is_nil(updated_socket.assigns.current_user)
     end
 
     test "assigns nil to current_user assign if there isn't a user_token", %{conn: conn} do
@@ -144,7 +144,7 @@ defmodule AtlasWeb.UserAuthTest do
       {:cont, updated_socket} =
         UserAuth.on_mount(:mount_current_user, %{}, session, %LiveView.Socket{})
 
-      assert updated_socket.assigns.current_user == nil
+      assert is_nil(updated_socket.assigns.current_user)
     end
   end
 
@@ -169,7 +169,7 @@ defmodule AtlasWeb.UserAuthTest do
       }
 
       {:halt, updated_socket} = UserAuth.on_mount(:ensure_authenticated, %{}, session, socket)
-      assert updated_socket.assigns.current_user == nil
+      assert is_nil(updated_socket.assigns.current_user)
     end
 
     test "redirects to login page if there isn't a user_token", %{conn: conn} do
@@ -181,7 +181,7 @@ defmodule AtlasWeb.UserAuthTest do
       }
 
       {:halt, updated_socket} = UserAuth.on_mount(:ensure_authenticated, %{}, session, socket)
-      assert updated_socket.assigns.current_user == nil
+      assert is_nil(updated_socket.assigns.current_user)
     end
   end
 

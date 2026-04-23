@@ -6,7 +6,7 @@ defmodule AtlasWeb.UserResetPasswordControllerTest do
   import Atlas.AccountsFixtures
 
   setup do
-    %{user: user_fixture()}
+    [user: user_fixture()]
   end
 
   describe "GET /users/reset_password" do
@@ -55,7 +55,7 @@ defmodule AtlasWeb.UserResetPasswordControllerTest do
           Accounts.deliver_user_reset_password_instructions(user, url)
         end)
 
-      %{token: token}
+      [token: token]
     end
 
     test "renders reset password", %{conn: conn, token: token} do
@@ -79,7 +79,7 @@ defmodule AtlasWeb.UserResetPasswordControllerTest do
           Accounts.deliver_user_reset_password_instructions(user, url)
         end)
 
-      %{token: token}
+      [token: token]
     end
 
     test "resets password once", %{conn: conn, user: user, token: token} do
