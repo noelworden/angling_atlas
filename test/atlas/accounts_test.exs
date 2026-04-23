@@ -4,7 +4,8 @@ defmodule Atlas.AccountsTest do
   alias Atlas.Accounts
 
   import Atlas.AccountsFixtures
-  alias Atlas.Accounts.{User, UserToken}
+  alias Atlas.Accounts.User
+  alias Atlas.Accounts.UserToken
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
@@ -12,8 +13,8 @@ defmodule Atlas.AccountsTest do
     end
 
     test "returns the user if the email exists" do
-      %{id: id} = user = user_fixture()
-      assert %User{id: ^id} = Accounts.get_user_by_email(user.email)
+      %{id: id, email: email} = user_fixture()
+      assert %User{id: ^id} = Accounts.get_user_by_email(email)
     end
   end
 
@@ -23,15 +24,15 @@ defmodule Atlas.AccountsTest do
     end
 
     test "does not return the user if the password is not valid" do
-      user = user_fixture()
-      refute Accounts.get_user_by_email_and_password(user.email, "invalid")
+      %{email: email} = user_fixture()
+      refute Accounts.get_user_by_email_and_password(email, "invalid")
     end
 
     test "returns the user if the email and password are valid" do
-      %{id: id} = user = user_fixture()
+      %{id: id, email: email} = user_fixture()
 
       assert %User{id: ^id} =
-               Accounts.get_user_by_email_and_password(user.email, valid_user_password())
+               Accounts.get_user_by_email_and_password(email, valid_user_password())
     end
   end
 
@@ -43,8 +44,8 @@ defmodule Atlas.AccountsTest do
     end
 
     test "returns the user with the given id" do
-      %{id: id} = user = user_fixture()
-      assert %User{id: ^id} = Accounts.get_user!(user.id)
+      %{id: id} = user_fixture()
+      assert %User{id: ^id} = Accounts.get_user!(id)
     end
   end
 
@@ -126,7 +127,7 @@ defmodule Atlas.AccountsTest do
 
   describe "apply_user_email/3" do
     setup do
-      %{user: user_fixture()}
+      [user: user_fixture()]
     end
 
     test "requires email to change", %{user: user} do
@@ -170,13 +171,13 @@ defmodule Atlas.AccountsTest do
       email = unique_user_email()
       {:ok, user} = Accounts.apply_user_email(user, valid_user_password(), %{email: email})
       assert user.email == email
-      assert Accounts.get_user!(user.id).email != email
+      refute Accounts.get_user!(user.id).email == email
     end
   end
 
   describe "deliver_user_update_email_instructions/3" do
     setup do
-      %{user: user_fixture()}
+      [user: user_fixture()]
     end
 
     test "sends token through notification", %{user: user} do
@@ -203,16 +204,16 @@ defmodule Atlas.AccountsTest do
           Accounts.deliver_user_update_email_instructions(%{user | email: email}, user.email, url)
         end)
 
-      %{user: user, token: token, email: email}
+      [user: user, token: token, email: email]
     end
 
     test "updates the email with a valid token", %{user: user, token: token, email: email} do
       assert Accounts.update_user_email(user, token) == :ok
       changed_user = Repo.get!(User, user.id)
-      assert changed_user.email != user.email
+      refute changed_user.email == user.email
       assert changed_user.email == email
       assert changed_user.confirmed_at
-      assert changed_user.confirmed_at != user.confirmed_at
+      refute changed_user.confirmed_at == user.confirmed_at
       refute Repo.get_by(UserToken, user_id: user.id)
     end
 
@@ -256,7 +257,7 @@ defmodule Atlas.AccountsTest do
 
   describe "update_user_password/3" do
     setup do
-      %{user: user_fixture()}
+      [user: user_fixture()]
     end
 
     test "validates password", %{user: user} do
@@ -312,7 +313,7 @@ defmodule Atlas.AccountsTest do
 
   describe "generate_user_session_token/1" do
     setup do
-      %{user: user_fixture()}
+      [user: user_fixture()]
     end
 
     test "generates a token", %{user: user} do
@@ -335,7 +336,7 @@ defmodule Atlas.AccountsTest do
     setup do
       user = user_fixture()
       token = Accounts.generate_user_session_token(user)
-      %{user: user, token: token}
+      [user: user, token: token]
     end
 
     test "returns user by token", %{user: user, token: token} do
@@ -364,7 +365,7 @@ defmodule Atlas.AccountsTest do
 
   describe "deliver_user_confirmation_instructions/2" do
     setup do
-      %{user: user_fixture()}
+      [user: user_fixture()]
     end
 
     test "sends token through notification", %{user: user} do
@@ -390,13 +391,13 @@ defmodule Atlas.AccountsTest do
           Accounts.deliver_user_confirmation_instructions(user, url)
         end)
 
-      %{user: user, token: token}
+      [user: user, token: token]
     end
 
     test "confirms the email with a valid token", %{user: user, token: token} do
       assert {:ok, confirmed_user} = Accounts.confirm_user(token)
       assert confirmed_user.confirmed_at
-      assert confirmed_user.confirmed_at != user.confirmed_at
+      refute confirmed_user.confirmed_at == user.confirmed_at
       assert Repo.get!(User, user.id).confirmed_at
       refute Repo.get_by(UserToken, user_id: user.id)
     end
@@ -417,7 +418,7 @@ defmodule Atlas.AccountsTest do
 
   describe "deliver_user_reset_password_instructions/2" do
     setup do
-      %{user: user_fixture()}
+      [user: user_fixture()]
     end
 
     test "sends token through notification", %{user: user} do
@@ -443,7 +444,7 @@ defmodule Atlas.AccountsTest do
           Accounts.deliver_user_reset_password_instructions(user, url)
         end)
 
-      %{user: user, token: token}
+      [user: user, token: token]
     end
 
     test "returns the user with valid token", %{user: %{id: id}, token: token} do
@@ -465,7 +466,7 @@ defmodule Atlas.AccountsTest do
 
   describe "reset_user_password/2" do
     setup do
-      %{user: user_fixture()}
+      [user: user_fixture()]
     end
 
     test "validates password", %{user: user} do
